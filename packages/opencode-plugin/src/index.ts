@@ -319,27 +319,27 @@ const VibeLearningPlugin: Plugin = async (ctx) => {
 
           if (status.unknownCount > 0) {
             const unknownInfo = status.unknownFirst
-              ? `${status.unknownCount} unexplored (${status.unknownFirst})`
-              : `${status.unknownCount} unexplored`;
+              ? `${status.unknownCount} new concepts to explore (e.g. ${status.unknownFirst})`
+              : `${status.unknownCount} new concepts to explore`;
             parts.push(unknownInfo);
           }
 
           if (status.dueCount > 0) {
             const dueInfo = status.dueFirst
-              ? `${status.dueCount} due (${status.dueFirst})`
-              : `${status.dueCount} due`;
+              ? `${status.dueCount} ready for review (e.g. ${status.dueFirst})`
+              : `${status.dueCount} ready for review`;
             parts.push(dueInfo);
           }
 
           let message: string;
           if (parts.length > 0) {
-            message = parts.join(", ") + ". /learn unknowns or /learn review";
+            message = parts.join(" | ") + "\n/learn unknowns or /learn review";
           } else {
             const modeInfo = seniorEnabled && afterEnabled ? "Full mode"
               : seniorEnabled ? "Senior mode"
               : afterEnabled ? "After mode"
               : "Off";
-            message = `Active (${modeInfo}). /learn for status.`;
+            message = `Active (${modeInfo}). /learn for commands.`;
           }
 
           client.tui.showToast({
