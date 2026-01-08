@@ -6,6 +6,68 @@
  */
 
 import type { Plugin } from "@opencode-ai/plugin";
+import { homedir } from "node:os";
+import { join } from "node:path";
+import { existsSync } from "node:fs";
+
+// DB configuration
+const DB_DIR = ".vibe-learning";
+const DB_FILENAME = "learning.db";
+
+interface LearningStatus {
+  unknownCount: number;
+  unknownFirst: string | null;
+  dueCount: number;
+  dueFirst: string | null;
+}
+
+/**
+ * Get learning status from DB using bun:sqlite
+ */
+function getLearningStatus(): LearningStatus {
+  try {
+    const dbPath = join(homedir(), DB_DIR, DB_FILENAME);
+    if (!existsSync(dbPath)) {
+      return { unknownCount: 0, unknownFirst: null, dueCount: 0, dueFirst: null };
+    }
+
+    // Use bun:sqlite (Bun's native SQLite)
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { Database } = require("bun:sqlite");
+    const db = new Database(dbPath, { readonly: true });
+
+    try {
+      // Get unexplored unknown unknowns count and first item
+      const unknownsCount = db.query(
+        "SELECT COUNT(*) as count FROM unknown_unknowns WHERE explored = 0"
+      ).get() as { count: number } | null;
+      const unknownsFirst = db.query(
+        "SELECT concept_id FROM unknown_unknowns WHERE explored = 0 ORDER BY appearances DESC, first_seen DESC LIMIT 1"
+      ).get() as { concept_id: string } | null;
+
+      // Get due reviews count and first item
+      const today = new Date().toISOString().split("T")[0];
+      const reviewsCount = db.query(
+        "SELECT COUNT(*) as count FROM concept_progress WHERE next_review IS NOT NULL AND next_review <= ?"
+      ).get(today) as { count: number } | null;
+      const reviewsFirst = db.query(
+        "SELECT concept_id FROM concept_progress WHERE next_review IS NOT NULL AND next_review <= ? ORDER BY next_review ASC LIMIT 1"
+      ).get(today) as { concept_id: string } | null;
+
+      return {
+        unknownCount: unknownsCount?.count ?? 0,
+        unknownFirst: unknownsFirst?.concept_id ?? null,
+        dueCount: reviewsCount?.count ?? 0,
+        dueFirst: reviewsFirst?.concept_id ?? null,
+      };
+    } finally {
+      db.close();
+    }
+  } catch {
+    // DB not available or error
+    return { unknownCount: 0, unknownFirst: null, dueCount: 0, dueFirst: null };
+  }
+}
 
 const CONFIG = {
   TOOL_THRESHOLD: 3,
@@ -22,7 +84,6 @@ let recentConcepts: string[] = [];
 let seniorEnabled = true;
 let afterEnabled = true;
 let lastSessionID: string | null = null;
-let shownToastForSession: string | null = null;
 
 interface ConceptMatch {
   pattern: RegExp | ((s: string) => boolean);
@@ -239,24 +300,54 @@ const VibeLearningPlugin: Plugin = async (ctx) => {
     });
   };
 
+  // Track if toast shown for this session
+  let toastShownForSession: string | null = null;
+
   return {
     "tool.execute.before": async (
       input: { tool: string; sessionID: string; callID: string; args: Record<string, unknown> }
     ): Promise<void> => {
       // Show toast on first vibe-learning MCP call per session
-      if (input.tool.startsWith("mcp__vibe-learning__")) {
-        if (shownToastForSession !== input.sessionID) {
-          shownToastForSession = input.sessionID;
-          const modeInfo = seniorEnabled && afterEnabled ? "Full mode"
-            : seniorEnabled ? "Senior mode"
-            : afterEnabled ? "After mode"
-            : "Off";
+      // Tool name format: "vibe-learning_get_mode" (not "mcp__vibe-learning__")
+      if (input.tool.startsWith("vibe-learning_")) {
+        if (toastShownForSession !== input.sessionID) {
+          toastShownForSession = input.sessionID;
+
+          // Get learning status from DB
+          const status = getLearningStatus();
+          const parts: string[] = [];
+
+          if (status.unknownCount > 0) {
+            const unknownInfo = status.unknownFirst
+              ? `${status.unknownCount} unexplored (${status.unknownFirst})`
+              : `${status.unknownCount} unexplored`;
+            parts.push(unknownInfo);
+          }
+
+          if (status.dueCount > 0) {
+            const dueInfo = status.dueFirst
+              ? `${status.dueCount} due (${status.dueFirst})`
+              : `${status.dueCount} due`;
+            parts.push(dueInfo);
+          }
+
+          let message: string;
+          if (parts.length > 0) {
+            message = parts.join(", ") + ". /learn unknowns or /learn review";
+          } else {
+            const modeInfo = seniorEnabled && afterEnabled ? "Full mode"
+              : seniorEnabled ? "Senior mode"
+              : afterEnabled ? "After mode"
+              : "Off";
+            message = `Active (${modeInfo}). /learn for status.`;
+          }
+
           client.tui.showToast({
             body: {
               title: "🎓 VibeLearning",
-              message: `Active (${modeInfo}). /learn for status.`,
+              message,
               variant: "info" as const,
-              duration: 3000
+              duration: 8000
             },
           }).catch(() => {});
         }

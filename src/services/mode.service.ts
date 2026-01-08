@@ -81,13 +81,34 @@ export class ModeService {
     const state = this.modeRepo.get();
     const isPaused = this.modeRepo.isPaused();
 
+    const seniorActive = isPaused ? false : state.seniorEnabled;
+    const afterActive = isPaused ? false : state.afterEnabled;
+
+    // Build formatted status output
+    let modeStatus: string;
+    if (isPaused) {
+      modeStatus = `⏸️ Paused until ${state.pausedUntil}`;
+    } else if (seniorActive && afterActive) {
+      modeStatus = '🎓 Full Mode (Senior + After)';
+    } else if (seniorActive) {
+      modeStatus = '👨‍💼 Senior Mode Only';
+    } else if (afterActive) {
+      modeStatus = '📚 After Mode Only';
+    } else {
+      modeStatus = '💤 Off (recording continues)';
+    }
+
+    const focusInfo = state.focusArea ? `\n📍 Focus: ${state.focusArea}` : '';
+    const formattedOutput = `**[VibeLearning]** ${modeStatus}${focusInfo}\n_Use /learn for commands_`;
+
     return {
-      seniorEnabled: isPaused ? false : state.seniorEnabled,
-      afterEnabled: isPaused ? false : state.afterEnabled,
+      seniorEnabled: seniorActive,
+      afterEnabled: afterActive,
       pausedUntil: state.pausedUntil ? formatISOString(state.pausedUntil) : null,
       focusArea: state.focusArea,
-      seniorBehavior: state.seniorEnabled && !isPaused ? SENIOR_BEHAVIOR : '',
-      afterBehavior: state.afterEnabled && !isPaused ? AFTER_BEHAVIOR : '',
+      seniorBehavior: seniorActive ? SENIOR_BEHAVIOR : '',
+      afterBehavior: afterActive ? AFTER_BEHAVIOR : '',
+      formattedOutput,
     };
   }
 

@@ -166,6 +166,7 @@ export interface GetModeResponse {
   readonly focusArea: string | null;
   readonly seniorBehavior: string;
   readonly afterBehavior: string;
+  readonly formattedOutput: string;
 }
 
 /**
