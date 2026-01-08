@@ -1,0 +1,42 @@
+{
+  "name": "vibe-learning",
+  "version": "0.3.25",
+  "description": "Learn while vibe coding - Spaced repetition learning",
+  "author": {
+    "name": "jeongjeong-il"
+  },
+  "repository": "https://github.com/12OneTwo12/vibe-learning",
+  "license": "MIT",
+  "keywords": [
+    "learning",
+    "spaced-repetition",
+    "hooks",
+    "mcp"
+  ],
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'npx -y vibe-learning hook:activity'",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'npx -y vibe-learning hook:stop'",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "description": "VibeLearning hooks for learning triggers",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'npx -y vibe-learning hook:session'",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'npx -y vibe-learning hook:activity'",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'npx -y vibe-learning hook:stop'",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
+}

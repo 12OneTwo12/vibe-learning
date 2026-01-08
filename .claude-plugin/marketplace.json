@@ -1,0 +1,18 @@
+{
+  "name": "12OneTwo12",
+  "owner": {
+    "name": "jeongjeong-il"
+  },
+  "metadata": {
+    "description": "VibeLearning - Learn while vibe coding",
+    "homepage": "https://github.com/12OneTwo12/vibe-learning"
+  },
+  "plugins": [
+    {
+      "name": "vibe-learning",
+      "version": "0.3.25",
+      "source": "./",
+      "description": "Spaced repetition learning while coding"
+    }
+  ]
+}
