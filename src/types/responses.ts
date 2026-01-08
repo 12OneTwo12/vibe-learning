@@ -87,6 +87,7 @@ export interface GetUnknownUnknownsResponse {
   readonly unknowns: readonly UnknownUnknownItem[];
   readonly totalCount: number;
   readonly exploredThisPeriod: number;
+  readonly formattedOutput: string;
 }
 
 /**
@@ -100,6 +101,7 @@ export interface GetReportDataResponse {
   readonly unknownUnknowns: readonly UnknownUnknownItem[];
   readonly trends: ReportTrends;
   readonly skippedConcepts: readonly SkippedConceptResponse[];
+  readonly formattedOutput: string;
 }
 
 /**

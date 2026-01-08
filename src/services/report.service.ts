@@ -82,7 +82,7 @@ export class ReportService {
     // Get skipped concepts
     const skippedConcepts = this.getSkippedConcepts(period);
 
-    return {
+    const result = {
       period: periodString,
       summary,
       weakAreas,
@@ -90,7 +90,77 @@ export class ReportService {
       unknownUnknowns: unknowns,
       trends,
       skippedConcepts,
+      formattedOutput: '',
     };
+
+    result.formattedOutput = this.formatReportOutput(result);
+    return result;
+  }
+
+  /**
+   * Formats report for display
+   */
+  private formatReportOutput(report: Omit<GetReportDataResponse, 'formattedOutput'>): string {
+    const lines: string[] = [];
+
+    // Header
+    lines.push(`📊 VibeLearning Report (${report.period})`);
+    lines.push('');
+
+    // Summary stats
+    lines.push('📈 Summary');
+    lines.push(`  Concepts: ${report.summary.conceptsTouched} (${report.summary.newConcepts} new, ${report.summary.repeatedConcepts} reviewed)`);
+    lines.push(`  Questions: ${report.summary.questionsAnswered} answered, ${Math.round(report.summary.skipRate * 100)}% skip rate`);
+    lines.push(`  Level: ${report.summary.avgLevelStart.toFixed(1)} → ${report.summary.avgLevelEnd.toFixed(1)}`);
+    lines.push('');
+
+    // Weak areas
+    if (report.weakAreas.length > 0) {
+      lines.push('🔴 Weak Areas');
+      for (const area of report.weakAreas) {
+        lines.push(`  • ${area.area} (Lv ${area.avgLevel})`);
+        lines.push(`    ${area.signals.join(', ')}`);
+      }
+      lines.push('');
+    }
+
+    // Strong areas
+    if (report.strongAreas.length > 0) {
+      lines.push('🟢 Strong Areas');
+      for (const area of report.strongAreas) {
+        lines.push(`  • ${area.area} (Lv ${area.avgLevel}, ${Math.round(area.correctRate * 100)}% correct)`);
+      }
+      lines.push('');
+    }
+
+    // Unknown unknowns
+    if (report.unknownUnknowns.length > 0) {
+      lines.push(`💡 New Concepts to Explore (${report.unknownUnknowns.length})`);
+      for (const uu of report.unknownUnknowns.slice(0, 3)) {
+        lines.push(`  • ${uu.conceptId} ← ${uu.relatedTo}`);
+      }
+      if (report.unknownUnknowns.length > 3) {
+        lines.push(`  ... and ${report.unknownUnknowns.length - 3} more`);
+      }
+      lines.push('');
+    }
+
+    // Skipped concepts
+    if (report.skippedConcepts.length > 0) {
+      lines.push('⏭️ Often Skipped');
+      for (const sc of report.skippedConcepts.slice(0, 3)) {
+        lines.push(`  • ${sc.conceptId} (${sc.skipCount}x)`);
+      }
+      lines.push('');
+    }
+
+    // Trends
+    lines.push('📉 vs Last Period');
+    lines.push(`  Concepts: ${report.trends.vsLastPeriod.conceptsTouched}`);
+    lines.push(`  Level: ${report.trends.vsLastPeriod.avgLevel}`);
+    lines.push(`  Correct Rate: ${report.trends.vsLastPeriod.correctRate}`);
+
+    return lines.join('\n');
   }
 
   /**

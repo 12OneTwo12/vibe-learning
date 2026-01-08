@@ -50,7 +50,62 @@ export class UnknownUnknownsService {
       unknowns: items,
       totalCount: totalUnexplored,
       exploredThisPeriod: exploredCount,
+      formattedOutput: this.formatUnknownsOutput(items, totalUnexplored),
     };
+  }
+
+  /**
+   * Formats unknown unknowns for display
+   */
+  private formatUnknownsOutput(items: UnknownUnknownItem[], totalCount: number): string {
+    if (items.length === 0) {
+      return '📚 No unknown unknowns to explore. Keep coding!';
+    }
+
+    const lines: string[] = [];
+    lines.push(`📚 Unknown Unknowns (${totalCount})`);
+    lines.push('');
+
+    // Group by priority
+    const high = items.filter((u) => u.priority === 'high');
+    const medium = items.filter((u) => u.priority === 'medium');
+    const low = items.filter((u) => u.priority === 'low');
+
+    let index = 1;
+
+    if (high.length > 0) {
+      lines.push('🔴 High Priority');
+      for (const item of high) {
+        lines.push(`  ${index}. ${item.conceptId} ← ${item.relatedTo}`);
+        lines.push(`     ${item.whyImportant}`);
+        index++;
+      }
+      lines.push('');
+    }
+
+    if (medium.length > 0) {
+      lines.push('🟡 Medium Priority');
+      for (const item of medium) {
+        lines.push(`  ${index}. ${item.conceptId} ← ${item.relatedTo}`);
+        lines.push(`     ${item.whyImportant}`);
+        index++;
+      }
+      lines.push('');
+    }
+
+    if (low.length > 0) {
+      lines.push('🟢 Low Priority');
+      for (const item of low) {
+        lines.push(`  ${index}. ${item.conceptId} ← ${item.relatedTo}`);
+        lines.push(`     ${item.whyImportant}`);
+        index++;
+      }
+      lines.push('');
+    }
+
+    lines.push('💡 Use /learn unknowns to explore these concepts');
+
+    return lines.join('\n');
   }
 
   /**
