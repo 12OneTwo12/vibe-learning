@@ -142,6 +142,7 @@ function getLearningStatus(): LearningStatus {
 const CONFIG = { TOOL_THRESHOLD: 3, COOLDOWN_MS: 15 * 60 * 1000, MAX_CONCEPTS: 10, SIGNIFICANT_TOOLS: ["edit", "write", "bash"] };
 let toolCount = 0, lastLearningPrompt = 0, recentConcepts: string[] = [];
 let seniorEnabled = true, afterEnabled = true, lastSessionID: string | null = null;
+const shownToastSessions = new Set<string>(); // Track sessions where we've shown the welcome toast
 
 const FILE_CONCEPTS = [
   { pattern: /test|spec|__tests__/i, concept: "unit-testing" },
@@ -226,35 +227,38 @@ const VibeLearningPlugin: Plugin = async (ctx) => {
     }).catch(() => {});
   };
 
-  return {
-    "session.created": async (input: { id: string }): Promise<void> => {
-      lastSessionID = input.id;
-      const status = getLearningStatus();
-      let message: string, variant: "info" | "warning" | "success" = "info";
+  // Show welcome toast on first message of a new session
+  const showWelcomeToast = (sessionID: string) => {
+    if (shownToastSessions.has(sessionID)) return;
+    shownToastSessions.add(sessionID);
 
-      if (status.error) {
-        message = "Learning mode active. Use /learn to check status.";
-      } else if (status.unknownUnknowns.count === 0 && status.dueReviews.count === 0) {
-        message = "All caught up! No pending reviews.";
-        variant = "success";
-      } else {
-        const parts: string[] = [];
-        if (status.unknownUnknowns.count > 0) {
-          const { first, count } = status.unknownUnknowns;
-          parts.push(first ? (count === 1 ? \`New concept: "\${first}"\` : \`New concepts: "\${first}" +\${count - 1} more\`) : \`\${count} new concepts to learn\`);
-        }
-        if (status.dueReviews.count > 0) {
-          const { first, count } = status.dueReviews;
-          parts.push(first ? (count === 1 ? \`Due for review: "\${first}"\` : \`Due for review: "\${first}" +\${count - 1} more\`) : \`\${count} concepts due for review\`);
-        }
-        message = parts.join(" | ");
-        variant = "warning";
+    const status = getLearningStatus();
+    let message: string, variant: "info" | "warning" | "success" = "info";
+
+    if (status.error) {
+      message = "Learning mode active. Use /learn to check status.";
+    } else if (status.unknownUnknowns.count === 0 && status.dueReviews.count === 0) {
+      message = "All caught up! No pending reviews.";
+      variant = "success";
+    } else {
+      const parts: string[] = [];
+      if (status.unknownUnknowns.count > 0) {
+        const { first, count } = status.unknownUnknowns;
+        parts.push(first ? (count === 1 ? \`New concept: "\${first}"\` : \`New concepts: "\${first}" +\${count - 1} more\`) : \`\${count} new concepts to learn\`);
       }
+      if (status.dueReviews.count > 0) {
+        const { first, count } = status.dueReviews;
+        parts.push(first ? (count === 1 ? \`Due for review: "\${first}"\` : \`Due for review: "\${first}" +\${count - 1} more\`) : \`\${count} concepts due for review\`);
+      }
+      message = parts.join(" | ");
+      variant = "warning";
+    }
 
-      client.tui.showToast({ body: { title: "📚 VibeLearning", message, variant, duration: 5000 } }).catch(() => {});
-      log("info", \`[VibeLearning] Session created: \${input.id}\`);
-    },
+    client.tui.showToast({ body: { title: "📚 VibeLearning", message, variant, duration: 5000 } }).catch(() => {});
+    log("info", \`[VibeLearning] Welcome toast shown for session: \${sessionID}\`);
+  };
 
+  return {
     "tool.execute.after": async (input: { tool: string; sessionID: string }, output: { title: string; metadata: any }): Promise<void> => {
       lastSessionID = input.sessionID;
       if (!CONFIG.SIGNIFICANT_TOOLS.includes(input.tool.toLowerCase())) return;
@@ -281,6 +285,9 @@ const VibeLearningPlugin: Plugin = async (ctx) => {
       const { message } = output;
       if (!message || message.role !== "user" || !message.content) return;
       lastSessionID = input.sessionID;
+
+      // Show welcome toast on first message of the session
+      showWelcomeToast(input.sessionID);
 
       const cmd = parseLearnCommand(message.content);
       if (cmd) {
