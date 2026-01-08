@@ -1,6 +1,6 @@
 {
   "name": "vibe-learning-opencode",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "VibeLearning plugin for OpenCode - spaced repetition learning while coding",
   "type": "module",
   "main": "dist/index.js",
@@ -13,7 +13,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --outfile=dist/index.js --external:@opencode-ai/plugin --external:@opencode-ai/sdk",
+    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --outfile=dist/index.js --external:@opencode-ai/plugin --external:@opencode-ai/sdk --external:better-sqlite3",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -33,11 +33,14 @@
   },
   "peerDependencies": {
     "@opencode-ai/plugin": "*",
-    "@opencode-ai/sdk": "*"
+    "@opencode-ai/sdk": "*",
+    "better-sqlite3": ">=9.0.0"
   },
   "devDependencies": {
     "@opencode-ai/plugin": "^1.1.4",
     "@opencode-ai/sdk": "^1.0.0",
+    "@types/better-sqlite3": "^7.6.8",
+    "better-sqlite3": "^11.0.0",
     "esbuild": "^0.20.0",
     "typescript": "^5.0.0"
   }

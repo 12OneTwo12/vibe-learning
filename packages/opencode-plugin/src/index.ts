@@ -6,6 +6,83 @@
  */
 
 import type { Plugin } from "@opencode-ai/plugin";
+import * as path from "node:path";
+import * as os from "node:os";
+import * as fs from "node:fs";
+
+// DB configuration
+const DB_DIR = ".vibe-learning";
+const DB_FILENAME = "learning.db";
+
+interface LearningStatus {
+  unknownUnknowns: { count: number; first?: string };
+  dueReviews: { count: number; first?: string };
+  error?: string;
+}
+
+/**
+ * Get learning status from DB
+ * Returns counts and first item of unknown unknowns and due reviews
+ */
+function getLearningStatus(): LearningStatus {
+  try {
+    const dbPath = path.join(os.homedir(), DB_DIR, DB_FILENAME);
+
+    // Check if DB exists
+    if (!fs.existsSync(dbPath)) {
+      return {
+        unknownUnknowns: { count: 0 },
+        dueReviews: { count: 0 }
+      };
+    }
+
+    // Dynamic import better-sqlite3 (may not be available)
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Database = require("better-sqlite3");
+    const db = new Database(dbPath, { readonly: true });
+
+    try {
+      // Get unexplored unknown unknowns (count + first one by priority)
+      const unknownsCount = db.prepare(
+        "SELECT COUNT(*) as count FROM unknown_unknowns WHERE explored = 0"
+      ).get() as { count: number };
+
+      const firstUnknown = db.prepare(
+        "SELECT concept_id FROM unknown_unknowns WHERE explored = 0 ORDER BY appearances DESC, first_seen DESC LIMIT 1"
+      ).get() as { concept_id: string } | undefined;
+
+      // Get due reviews (count + first one)
+      const today = new Date().toISOString().split("T")[0];
+      const reviewsCount = db.prepare(
+        "SELECT COUNT(*) as count FROM concept_progress WHERE next_review IS NOT NULL AND next_review <= ?"
+      ).get(today) as { count: number };
+
+      const firstReview = db.prepare(
+        "SELECT concept_id FROM concept_progress WHERE next_review IS NOT NULL AND next_review <= ? ORDER BY next_review ASC LIMIT 1"
+      ).get(today) as { concept_id: string } | undefined;
+
+      return {
+        unknownUnknowns: {
+          count: unknownsCount?.count ?? 0,
+          first: firstUnknown?.concept_id
+        },
+        dueReviews: {
+          count: reviewsCount?.count ?? 0,
+          first: firstReview?.concept_id
+        }
+      };
+    } finally {
+      db.close();
+    }
+  } catch (error) {
+    // DB not available or better-sqlite3 not installed
+    return {
+      unknownUnknowns: { count: 0 },
+      dueReviews: { count: 0 },
+      error: error instanceof Error ? error.message : "Unknown error"
+    };
+  }
+}
 
 const CONFIG = {
   TOOL_THRESHOLD: 3,
@@ -225,7 +302,7 @@ const VibeLearningPlugin: Plugin = async (ctx) => {
 
   client.app.log({
     level: "info",
-    message: "[VibeLearning] Plugin loaded (v2 - independent toggles)",
+    message: "[VibeLearning] Plugin loaded (v3 - session toast)",
   }).catch(() => {});
 
   const injectPrompt = (sessionID: string, prompt: string) => {
@@ -239,6 +316,76 @@ const VibeLearningPlugin: Plugin = async (ctx) => {
   };
 
   return {
+    // Session created - show toast with learning status
+    "session.created": async (
+      input: { id: string }
+    ): Promise<void> => {
+      lastSessionID = input.id;
+
+      // Get actual learning status from DB
+      const status = getLearningStatus();
+
+      // Build toast message based on status
+      let message: string;
+      let variant: "info" | "warning" | "success" = "info";
+
+      if (status.error) {
+        // DB not available, show simple message
+        message = "Learning mode active. Use /learn to check status.";
+      } else if (status.unknownUnknowns.count === 0 && status.dueReviews.count === 0) {
+        message = "All caught up! No pending reviews.";
+        variant = "success";
+      } else {
+        const parts: string[] = [];
+
+        // Unknown unknowns: concepts to learn
+        if (status.unknownUnknowns.count > 0) {
+          const { first, count } = status.unknownUnknowns;
+          if (first) {
+            if (count === 1) {
+              parts.push(`New concept: "${first}"`);
+            } else {
+              parts.push(`New concepts: "${first}" +${count - 1} more`);
+            }
+          } else {
+            parts.push(`${count} new concepts to learn`);
+          }
+        }
+
+        // Due reviews: concepts to review
+        if (status.dueReviews.count > 0) {
+          const { first, count } = status.dueReviews;
+          if (first) {
+            if (count === 1) {
+              parts.push(`Due for review: "${first}"`);
+            } else {
+              parts.push(`Due for review: "${first}" +${count - 1} more`);
+            }
+          } else {
+            parts.push(`${count} concepts due for review`);
+          }
+        }
+
+        message = parts.join(" | ");
+        variant = "warning";
+      }
+
+      // Show toast notification
+      client.tui.showToast({
+        body: {
+          title: "📚 VibeLearning",
+          message,
+          variant,
+          duration: 5000
+        },
+      }).catch(() => {});
+
+      client.app.log({
+        level: "info",
+        message: `[VibeLearning] Session created: ${input.id} (unknowns: ${status.unknownUnknowns.count}, reviews: ${status.dueReviews.count})`
+      }).catch(() => {});
+    },
+
     "tool.execute.after": async (
       input: { tool: string; sessionID: string; callID: string },
       output: { title: string; output: string; metadata: any }
@@ -304,18 +451,14 @@ const VibeLearningPlugin: Plugin = async (ctx) => {
           lastLearningPrompt = Date.now();
         }
 
-        // Execute command
+        // Execute command (no toast - reduces noise)
         const prompt = COMMAND_PROMPTS[cmd];
         if (prompt) {
-          client.tui.showToast({
-            body: { title: "🎓 VibeLearning", message: `Executing /learn ${cmd}...`, variant: "info" as const, duration: 2000 },
-          }).catch(() => {});
-
           setTimeout(() => {
             if (lastSessionID) {
               injectPrompt(lastSessionID, prompt);
             }
-          }, 500);
+          }, 100);
         }
 
         client.app.log({ level: "info", message: `[VibeLearning] Command: ${cmd}` }).catch(() => {});
