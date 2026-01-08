@@ -10,7 +10,7 @@
   "plugins": [
     {
       "name": "vibe-learning",
-      "version": "0.3.25",
+      "version": "0.3.30",
       "source": "./",
       "description": "Spaced repetition learning while coding"
     }

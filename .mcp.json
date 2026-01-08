@@ -1,7 +1,9 @@
 {
-  "vibe-learning": {
-    "type": "stdio",
-    "command": "npx",
-    "args": ["-y", "vibe-learning", "serve"]
+  "mcpServers": {
+    "vibe-learning": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "vibe-learning", "serve"]
+    }
   }
 }
