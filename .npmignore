@@ -1,0 +1,37 @@
+# Test coverage
+coverage/
+
+# Tests
+tests/
+*.test.ts
+*.spec.ts
+
+# Documentation
+docs/
+
+# Development
+.github/
+.vscode/
+.idea/
+
+# Source maps
+*.map
+
+# TypeScript source (dist is enough)
+src/
+
+# Config files
+vitest.config.ts
+eslint.config.js
+tsconfig.json
+
+# Git
+.git/
+.gitignore
+
+# Plugins (not needed for npm package)
+plugins/
+packages/
+
+# Claude plugin metadata (marketplace.json not needed for npm)
+.claude-plugin/marketplace.json
