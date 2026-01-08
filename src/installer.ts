@@ -281,15 +281,19 @@ const VibeLearningPlugin: Plugin = async (ctx) => {
       }
     },
 
-    "chat.message": async (input: { sessionID: string }, output: { message: { role: string; content?: string } }): Promise<void> => {
-      const { message } = output;
-      if (!message || message.role !== "user" || !message.content) return;
+    "chat.message": async (input: { sessionID: string }, output: { message: { role: string }; parts: Array<{ type: string; text?: string }> }): Promise<void> => {
+      const { message, parts } = output;
+      if (!message || message.role !== "user") return;
       lastSessionID = input.sessionID;
 
       // Show welcome toast on first message of the session
       showWelcomeToast(input.sessionID);
 
-      const cmd = parseLearnCommand(message.content);
+      // Extract text content from parts
+      const textContent = parts.filter(p => p.type === "text").map(p => p.text || "").join(" ").trim();
+      if (!textContent) return;
+
+      const cmd = parseLearnCommand(textContent);
       if (cmd) {
         if (cmd === "off") { seniorEnabled = false; afterEnabled = false; }
         else if (cmd === "on") { seniorEnabled = true; afterEnabled = true; }
@@ -302,8 +306,7 @@ const VibeLearningPlugin: Plugin = async (ctx) => {
         const prompt = COMMAND_PROMPTS[cmd];
         if (prompt) setTimeout(() => lastSessionID && injectPrompt(lastSessionID, prompt), 100);
       } else if (seniorEnabled) {
-        const trimmed = message.content.trim();
-        if (trimmed.length > 10 && !trimmed.match(/^(yes|no|ok|skip|done|correct|partial|incorrect|got it)/i)) {
+        if (textContent.length > 10 && !textContent.match(/^(yes|no|ok|skip|done|correct|partial|incorrect|got it)/i)) {
           setTimeout(() => lastSessionID && injectPrompt(lastSessionID, SENIOR_BEHAVIOR_PROMPT), 100);
         }
       }
