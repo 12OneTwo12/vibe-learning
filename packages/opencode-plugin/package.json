@@ -1,0 +1,44 @@
+{
+  "name": "vibe-learning-opencode",
+  "version": "0.2.8",
+  "description": "VibeLearning plugin for OpenCode - spaced repetition learning while coding",
+  "type": "module",
+  "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --outfile=dist/index.js --external:@opencode-ai/plugin --external:@opencode-ai/sdk",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "opencode",
+    "plugin",
+    "learning",
+    "spaced-repetition",
+    "ai",
+    "coding"
+  ],
+  "author": "jeongjeong-il",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jeongjeong-il/vibe-learning.git",
+    "directory": "packages/opencode-plugin"
+  },
+  "peerDependencies": {
+    "@opencode-ai/plugin": "*",
+    "@opencode-ai/sdk": "*"
+  },
+  "devDependencies": {
+    "@opencode-ai/plugin": "^1.1.4",
+    "@opencode-ai/sdk": "^1.0.0",
+    "esbuild": "^0.20.0",
+    "typescript": "^5.0.0"
+  }
+}
