@@ -213,7 +213,10 @@ function parseLearnCommand(text: string): string | null {
 
 const VibeLearningPlugin: Plugin = async (ctx) => {
   const { client } = ctx;
-  client.app.log({ level: "info", message: "[VibeLearning] Plugin loaded (local)" }).catch(() => {});
+  const log = (level: "info" | "error", message: string) => {
+    client.app.log({ body: { service: "vibe-learning", level, message } }).catch(() => {});
+  };
+  log("info", "[VibeLearning] Plugin loaded (local)");
 
   const injectPrompt = (sessionID: string, prompt: string) => {
     client.session.prompt({
@@ -249,7 +252,7 @@ const VibeLearningPlugin: Plugin = async (ctx) => {
       }
 
       client.tui.showToast({ body: { title: "📚 VibeLearning", message, variant, duration: 5000 } }).catch(() => {});
-      client.app.log({ level: "info", message: \`[VibeLearning] Session created: \${input.id}\` }).catch(() => {});
+      log("info", \`[VibeLearning] Session created: \${input.id}\`);
     },
 
     "tool.execute.after": async (input: { tool: string; sessionID: string }, output: { title: string; metadata: any }): Promise<void> => {
@@ -370,6 +373,12 @@ const platforms: Platform[] = [
       // Remove old npm plugin if exists
       if (deps["vibe-learning-opencode"]) {
         delete deps["vibe-learning-opencode"];
+      }
+      // Also remove from node_modules if exists (leftover from previous install)
+      const oldPluginModule = join(configDir, "node_modules", "vibe-learning-opencode");
+      if (existsSync(oldPluginModule)) {
+        rmSync(oldPluginModule, { recursive: true, force: true });
+        console.log("  ✓ Removed old npm plugin from node_modules");
       }
       // Add required dependencies for local plugin
       if (!deps["@opencode-ai/plugin"]) {
