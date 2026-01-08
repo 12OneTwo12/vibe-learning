@@ -135,6 +135,7 @@ function getLearningStatus(): LearningStatus {
       };
     } finally { db.close(); }
   } catch (error) {
+    console.error("[VibeLearning] DB Error:", error);
     return { unknownUnknowns: { count: 0 }, dueReviews: { count: 0 }, error: String(error) };
   }
 }
@@ -143,6 +144,7 @@ const CONFIG = { TOOL_THRESHOLD: 3, COOLDOWN_MS: 15 * 60 * 1000, MAX_CONCEPTS: 1
 let toolCount = 0, lastLearningPrompt = 0, recentConcepts: string[] = [];
 let seniorEnabled = true, afterEnabled = true, lastSessionID: string | null = null;
 const shownToastSessions = new Set<string>(); // Track sessions where we've shown the welcome toast
+const injectedSeniorSessions = new Set<string>(); // Track sessions where we've injected senior prompt
 
 const FILE_CONCEPTS = [
   { pattern: /test|spec|__tests__/i, concept: "unit-testing" },
@@ -236,7 +238,7 @@ const VibeLearningPlugin: Plugin = async (ctx) => {
     let message: string, variant: "info" | "warning" | "success" = "info";
 
     if (status.error) {
-      message = "Learning mode active. Use /learn to check status.";
+      message = "Error: " + status.error.substring(0, 80);
     } else if (status.unknownUnknowns.count === 0 && status.dueReviews.count === 0) {
       message = "All caught up! No pending reviews.";
       variant = "success";
@@ -305,8 +307,9 @@ const VibeLearningPlugin: Plugin = async (ctx) => {
 
         const prompt = COMMAND_PROMPTS[cmd];
         if (prompt) setTimeout(() => lastSessionID && injectPrompt(lastSessionID, prompt), 100);
-      } else if (seniorEnabled) {
+      } else if (seniorEnabled && !injectedSeniorSessions.has(input.sessionID)) {
         if (textContent.length > 10 && !textContent.match(/^(yes|no|ok|skip|done|correct|partial|incorrect|got it)/i)) {
+          injectedSeniorSessions.add(input.sessionID);
           setTimeout(() => lastSessionID && injectPrompt(lastSessionID, SENIOR_BEHAVIOR_PROMPT), 100);
         }
       }
