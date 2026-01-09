@@ -145,33 +145,26 @@ const COMMAND_PROMPTS: Record<string, string> = {
 - Cooldown status
 - Consecutive skips`,
 
-  stats: `Execute NOW: Call mcp__vibe-learning__get_stats with period="month", then format as a dashboard showing:
-- Total concepts learned
-- Correct rate percentage
-- Average level
-- Per-concept breakdown`,
+  stats: `Execute NOW: Call mcp__vibe-learning__get_stats with period="month".
+Display the response's formattedOutput field directly if available. Otherwise format as dashboard.`,
 
-  report: `Execute NOW: Call mcp__vibe-learning__get_report_data with period="week", then format as a report with:
-- Summary
-- Weak areas needing reinforcement
-- Strong areas
-- Skipped concepts
-- Growth trends`,
+  report: `Execute NOW: Call mcp__vibe-learning__get_report_data with period="week".
+Display the response's formattedOutput field directly. This contains a pre-formatted report.`,
 
-  "report-month": `Execute NOW: Call mcp__vibe-learning__get_report_data with period="month", then format as monthly report.`,
+  "report-month": `Execute NOW: Call mcp__vibe-learning__get_report_data with period="month".
+Display the response's formattedOutput field directly.`,
 
   "report-save": `Execute NOW: Call mcp__vibe-learning__save_report with period="week". Confirm file saved.`,
 
-  unknowns: `Execute NOW: Call mcp__vibe-learning__get_unknown_unknowns with period="month" and limit=10, then show:
-- Unknown concepts by priority
-- Why each is important
-- Related concepts`,
+  unknowns: `Execute NOW: Call mcp__vibe-learning__get_unknown_unknowns with period="month" and limit=10.
+Display the response's formattedOutput field directly. This contains a pre-formatted list.`,
 
   "unknowns-save": `Execute NOW: Call mcp__vibe-learning__save_unknowns with period="month" and limit=20. Confirm file saved.`,
 
   review: `Execute NOW: Call mcp__vibe-learning__get_due_reviews with limit=5. For each due concept, ask a level-appropriate question and record results.`,
 
-  interview: `Execute NOW: Call mcp__vibe-learning__get_stats with period="month". Then conduct interview-style Level 3-5 questions on the learned concepts.`,
+  interview: `Execute NOW: Call mcp__vibe-learning__get_interview_data with period="month".
+Display the response's formattedOutput field directly, then follow the interviewBehavior instructions to conduct interview practice.`,
 
   pause: `Execute NOW: Call mcp__vibe-learning__set_mode with paused_until set to 1 hour from now (ISO format). Confirm paused.`,
 
@@ -254,7 +247,19 @@ Call mcp__vibe-learning__should_ask_question to check.
     _Learning Question (Level X)_
     [Your question here]?
   - After user answers, call mcp__vibe-learning__record_learning
-- If shouldAsk is false: skip silently (no cooldown message needed)`;
+- If shouldAsk is false: skip silently (no cooldown message needed)
+
+**STEP 5: Review Chaining (AFTER learning question is answered)**
+After calling record_learning:
+1. If the user skipped the learning question, skip the review too.
+2. Otherwise, call mcp__vibe-learning__get_due_reviews with limit=1.
+3. If a due review is found:
+   - Format:
+     **[VibeLearning Review]**
+     _Review Question (Level X) - {conceptId}_
+     [Your question here]?
+   - After user answers, call mcp__vibe-learning__record_learning for the review
+4. Do NOT chain more reviews (max 1 review per learning session)`;
 
 function parseLearnCommand(text: string): string | null {
   const lower = text.toLowerCase().trim();

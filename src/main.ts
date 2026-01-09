@@ -96,7 +96,17 @@ Execute these steps NOW:
      [Your question]?
    - After answer, call mcp__vibe-learning__record_learning
 
-4. If shouldAsk is false: you may stop.`;
+4. Review Chaining (AFTER learning question is answered):
+   - If the user did not skip the learning question:
+     - Call mcp__vibe-learning__get_due_reviews with limit=1.
+     - If a due review is found, ask the review question:
+       **[VibeLearning Review]**
+       _Review Question (Level X) - {conceptId}_
+       [Your question]?
+     - After the answer, call mcp__vibe-learning__record_learning for the review.
+   - Do NOT chain more reviews (max 1 per task)
+
+5. If shouldAsk is false: you may stop.`;
 
         console.error(instruction);
       }

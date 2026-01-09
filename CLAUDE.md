@@ -47,7 +47,33 @@ After user response, call `record_learning`:
 - "Let's strengthen the basics! Found your level: Level 2"
 - NOT "You got it wrong, level decreased"
 
-### 5. Unknown Unknowns
+### 5. Review Chaining (Auto-trigger SM-2 Reviews)
+
+**IMPORTANT**: After recording a learning result, check for due reviews:
+
+1. Call `get_due_reviews` (limit: 1)
+2. If there's a concept due for review:
+   - Ask ONE review question immediately
+   - Format:
+     ```
+     **[VibeLearning Review]**
+     _Review Question (Level X) - {conceptId}_
+     [Your question here]?
+     ```
+3. After user responds, call `record_learning` for the review
+4. Do NOT chain more reviews (max 1 review per learning session)
+
+**Why this matters:**
+- SM-2 spaced repetition only works if reviews actually happen
+- SessionStart hooks can't trigger proactive questions
+- This ensures reviews happen naturally in the learning flow
+
+**Fatigue Management:**
+- Learning question + Review question = max 2 questions per task
+- If user skips the learning question, don't ask review question
+- Respect the 15-minute cooldown for the NEXT task
+
+### 6. Unknown Unknowns
 When you discover related concepts the user might not know:
 - Record with `record_unknown_unknown`
 - Example: While implementing JWT -> record "refresh-token-rotation"
@@ -103,6 +129,7 @@ AFTER task completion:
 
 ## Example Flow
 
+### Basic Learning Flow
 ```
 [Task Completed]
 |
@@ -117,19 +144,94 @@ get_concept_level("cache-aside") -> level: 3 (new concept, starts at 3)
 record_learning("cache-aside", 3, "incorrect")
 |
 "Let's strengthen the basics! Found your level: Level 2. Next review: 1 day"
+```
 
-[Next Session]
+### Review Chaining Flow
+```
+[Task Completed - JWT Authentication]
 |
-get_concept_level("cache-aside") -> level: 2
+should_ask_question -> shouldAsk: true
 |
-"Can you explain how Cache-Aside pattern works?"
+get_concept_level("jwt-auth") -> level: 3
+|
+**[VibeLearning]**
+_Learning Question (Level 3)_
+"What's the difference between JWT and session-based auth?"
+|
+[User Response: Correct]
+|
+record_learning("jwt-auth", 3, "correct")
+"Correct! ..."
+|
+get_due_reviews(limit: 1) -> [{conceptId: "cache-aside", level: 2, daysOverdue: 1}]
+|
+**[VibeLearning Review]**
+_Review Question (Level 2) - cache-aside_
+"Can you explain how the Cache-Aside pattern works?"
 |
 [User Response: Correct]
 |
 record_learning("cache-aside", 2, "correct")
+"Great! Review complete. Next review: 3 days"
 |
-"Correct! Next review: 3 days"
+[Done - No more chaining]
 ```
+
+### Skip Handling
+```
+[Learning Question Asked]
+|
+[User: "skip"]
+|
+record_learning("jwt-auth", 3, "skipped")
+|
+get_due_reviews(limit: 1) -> has due review
+|
+[Do NOT ask review question - user already skipped]
+```
+
+## Interview Prep Mode
+
+When user runs `/learn interview`:
+
+1. Call `get_interview_data` to get technical areas and mastery levels
+2. Present topics using the formatted output:
+   ```
+   **[VibeLearning Interview Prep]**
+
+   Technical Areas:
+   • {area} - {implementations} implementations, {mastery}% mastery {← Weak area if isWeak}
+
+   Which area would you like to practice?
+   ```
+
+3. When user selects an area:
+   - Pick a concept from that area's concepts list
+   - Ask a behavioral/technical question:
+     "You implemented {concept}. Walk me through:
+     - Why did you choose this approach?
+     - What tradeoffs did you consider?
+     - What would you do differently at scale?"
+
+4. After user answers:
+   - Acknowledge good points
+   - Suggest improvements for stronger answers
+   - Mention what interviewers look for (the "why", tradeoffs, real-world experience)
+   - Call `record_learning` with the concept and result
+
+### Interview Question Style
+
+Ask questions that test understanding, not just recall:
+- "Walk me through your decision process for..."
+- "What happens if X fails? How would you handle it?"
+- "Compare this to alternative approaches. Why this one?"
+- "How would this change with 10x more traffic?"
+
+### Tone
+
+Be encouraging but constructive. This is practice, not a test.
+- Good: "Strong point about X! To make it even better, mention Y."
+- Avoid: "Wrong. The correct answer is..."
 
 ## Commands
 
@@ -145,3 +247,4 @@ record_learning("cache-aside", 2, "correct")
 - `/learn report` - Weekly report
 - `/learn unknowns` - Unknown unknowns list
 - `/learn review` - Review due concepts
+- `/learn interview` - Start interview practice
