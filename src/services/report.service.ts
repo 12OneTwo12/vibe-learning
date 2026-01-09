@@ -193,9 +193,12 @@ export class ReportService {
 
     const skipRate = calculateRate(totalSkipped, totalAnswered + totalSkipped);
 
-    // Calculate average level change
+    // Calculate average level change (pre-fetch to avoid N+1)
+    const allProgress = this.progressRepo.getAll();
+    const progressMap = new Map(allProgress.map((p) => [p.conceptId, p]));
+
     const levels = aggregates.map((a) => {
-      const progress = this.progressRepo.findById(a.conceptId);
+      const progress = progressMap.get(a.conceptId);
       return progress?.currentLevel ?? 1;
     });
     const avgLevelEnd = average(levels);
@@ -224,6 +227,10 @@ export class ReportService {
     // Group by area (prefix before first hyphen or underscore)
     const grouped = groupBy(aggregates, (a) => this.extractArea(a.conceptId));
 
+    // Pre-fetch all progress data to avoid N+1 queries
+    const allProgress = this.progressRepo.getAll();
+    const progressMap = new Map(allProgress.map((p) => [p.conceptId, p]));
+
     const weakAreas: WeakArea[] = [];
 
     for (const [area, concepts] of Object.entries(grouped)) {
@@ -242,7 +249,7 @@ export class ReportService {
       }
 
       const levels = concepts.map((c) => {
-        const progress = this.progressRepo.findById(c.conceptId);
+        const progress = progressMap.get(c.conceptId);
         return progress?.currentLevel ?? 1;
       });
       const avgLevel = average(levels);
@@ -278,6 +285,10 @@ export class ReportService {
   ): readonly StrongArea[] {
     const grouped = groupBy(aggregates, (a) => this.extractArea(a.conceptId));
 
+    // Pre-fetch all progress data to avoid N+1 queries
+    const allProgress = this.progressRepo.getAll();
+    const progressMap = new Map(allProgress.map((p) => [p.conceptId, p]));
+
     const strongAreas: StrongArea[] = [];
 
     for (const [area, concepts] of Object.entries(grouped)) {
@@ -290,7 +301,7 @@ export class ReportService {
       const correctRate = calculateRate(totalCorrect, totalAttempts - totalSkipped);
 
       const levels = concepts.map((c) => {
-        const progress = this.progressRepo.findById(c.conceptId);
+        const progress = progressMap.get(c.conceptId);
         return progress?.currentLevel ?? 1;
       });
       const avgLevel = average(levels);
@@ -343,8 +354,12 @@ export class ReportService {
       currentResults.correct / Math.max(1, currentResults.correct + currentResults.partial + currentResults.incorrect);
     const prevCorrectRate = 0.65; // Baseline assumption
 
+    // Pre-fetch all progress data to avoid N+1 queries
+    const allProgress = this.progressRepo.getAll();
+    const progressMap = new Map(allProgress.map((p) => [p.conceptId, p]));
+
     const currentLevels = currentAggregates.map((a) => {
-      const progress = this.progressRepo.findById(a.conceptId);
+      const progress = progressMap.get(a.conceptId);
       return progress?.currentLevel ?? 1;
     });
     const currentAvgLevel = average(currentLevels);

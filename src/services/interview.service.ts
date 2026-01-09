@@ -100,6 +100,10 @@ export class InterviewService {
       };
     }
 
+    // Pre-fetch all progress data to avoid N+1 queries
+    const allProgress = this.progressRepo.getAll();
+    const progressMap = new Map(allProgress.map((p) => [p.conceptId, p]));
+
     // Group concepts by area
     const grouped = groupBy(aggregates, (a) => this.extractArea(a.conceptId));
 
@@ -114,7 +118,7 @@ export class InterviewService {
       const correctRate = calculateRate(totalCorrect, totalAttempts - totalSkipped);
 
       const levels = concepts.map((c) => {
-        const progress = this.progressRepo.findById(c.conceptId);
+        const progress = progressMap.get(c.conceptId);
         return progress?.currentLevel ?? 1;
       });
       const avgLevel = average(levels);
@@ -143,17 +147,16 @@ export class InterviewService {
     // Recommend the weakest area with at least 2 implementations
     const recommendedTopic = topics.find((t) => t.implementations >= 2)?.area ?? null;
 
-    const result: GetInterviewDataResponse = {
+    const baseResult = {
       topics,
       recommendedTopic,
       totalConcepts: aggregates.length,
-      formattedOutput: '',
       interviewBehavior: INTERVIEW_BEHAVIOR,
     };
 
     return {
-      ...result,
-      formattedOutput: this.formatOutput(result),
+      ...baseResult,
+      formattedOutput: this.formatOutput(baseResult),
     };
   }
 
