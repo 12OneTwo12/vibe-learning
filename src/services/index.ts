@@ -14,3 +14,5 @@ export { ReportService } from './report.service.js';
 export { UnknownUnknownsService } from './unknown-unknowns.service.js';
 
 export { ModeService } from './mode.service.js';
+
+export { InterviewService } from './interview.service.js';

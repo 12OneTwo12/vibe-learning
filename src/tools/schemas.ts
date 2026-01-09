@@ -119,6 +119,13 @@ export const saveUnknownsInputSchema = z.object({
 });
 
 /**
+ * Schema for get_interview_data input
+ */
+export const getInterviewDataInputSchema = z.object({
+  period: timePeriodSchema.default('month').describe('Time period for interview data'),
+});
+
+/**
  * Type exports from schemas
  */
 export type GetConceptLevelInput = z.infer<typeof getConceptLevelInputSchema>;
@@ -132,3 +139,4 @@ export type GetDueReviewsInput = z.infer<typeof getDueReviewsInputSchema>;
 export type SetModeInput = z.infer<typeof setModeInputSchema>;
 export type SaveReportInput = z.infer<typeof saveReportInputSchema>;
 export type SaveUnknownsInput = z.infer<typeof saveUnknownsInputSchema>;
+export type GetInterviewDataInput = z.infer<typeof getInterviewDataInputSchema>;

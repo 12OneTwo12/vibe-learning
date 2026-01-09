@@ -44,6 +44,7 @@ async function main() {
       const result = fatigueService.shouldAskQuestion();
       console.log(JSON.stringify(result));
       process.exit(result.shouldAsk ? 0 : 1);
+      break;
     }
 
     case 'get-mode': {
@@ -52,6 +53,7 @@ async function main() {
       const mode = modeService.getMode();
       console.log(JSON.stringify(mode));
       process.exit(0);
+      break;
     }
 
     case 'get-random-concept': {
@@ -92,6 +94,7 @@ async function main() {
       // No concepts to review
       console.log(JSON.stringify({ conceptId: null, source: 'none' }));
       process.exit(1);
+      break;
     }
 
     case 'stats': {
@@ -101,6 +104,7 @@ async function main() {
       const stats = statsService.getStats('month');
       console.log(JSON.stringify(stats));
       process.exit(0);
+      break;
     }
 
     default:

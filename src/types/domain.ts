@@ -198,3 +198,16 @@ export interface SeniorModeRound {
   readonly maxRounds: number;
   readonly passed: boolean;
 }
+
+/**
+ * Interview topic with mastery data
+ */
+export interface InterviewTopic {
+  readonly area: string;
+  readonly implementations: number;
+  readonly mastery: number; // 0-100
+  readonly isWeak: boolean;
+  readonly concepts: readonly string[];
+  readonly avgLevel: number;
+  readonly correctRate: number;
+}
