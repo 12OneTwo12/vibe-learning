@@ -247,7 +247,19 @@ Call mcp__vibe-learning__should_ask_question to check.
     _Learning Question (Level X)_
     [Your question here]?
   - After user answers, call mcp__vibe-learning__record_learning
-- If shouldAsk is false: skip silently (no cooldown message needed)`;
+- If shouldAsk is false: skip silently (no cooldown message needed)
+
+**STEP 5: Review Chaining (AFTER learning question is answered)**
+After calling record_learning:
+1. Call mcp__vibe-learning__get_due_reviews with limit=1
+2. If there's a due review AND user didn't skip the learning question:
+   - Format:
+     **[VibeLearning Review]**
+     _Review Question (Level X) - {conceptId}_
+     [Your question here]?
+   - After user answers, call mcp__vibe-learning__record_learning for the review
+3. Do NOT chain more reviews (max 1 review per learning session)
+4. If user skipped the learning question, skip the review too`;
 
 function parseLearnCommand(text: string): string | null {
   const lower = text.toLowerCase().trim();
