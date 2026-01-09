@@ -50,9 +50,13 @@ export class StatsService {
       avgLevel: this.progressRepo.getAverageLevel(),
     };
 
+    // Pre-fetch all progress data to avoid N+1 queries
+    const allProgress = this.progressRepo.getAll();
+    const progressMap = new Map(allProgress.map((p) => [p.conceptId, p]));
+
     // Build per-concept stats
     const byConcept: ConceptStatsResponse[] = aggregates.map((agg) => {
-      const progress = this.progressRepo.findById(agg.conceptId);
+      const progress = progressMap.get(agg.conceptId);
       const correctRate = calculateRate(agg.correctCount, agg.totalAttempts - agg.skippedCount);
 
       return {
@@ -110,11 +114,15 @@ export class StatsService {
   getMostPracticed(period: TimePeriod, limit = 5): readonly ConceptStatsResponse[] {
     const aggregates = this.recordRepo.getAggregateStatsByPeriod(period);
 
+    // Pre-fetch all progress data to avoid N+1 queries
+    const allProgress = this.progressRepo.getAll();
+    const progressMap = new Map(allProgress.map((p) => [p.conceptId, p]));
+
     return [...aggregates]
       .sort((a, b) => b.totalAttempts - a.totalAttempts)
       .slice(0, limit)
       .map((agg) => {
-        const progress = this.progressRepo.findById(agg.conceptId);
+        const progress = progressMap.get(agg.conceptId);
         return {
           conceptId: agg.conceptId,
           currentLevel: progress?.currentLevel ?? 1,
@@ -131,10 +139,14 @@ export class StatsService {
   getWeakConcepts(period: TimePeriod, limit = 5): readonly ConceptStatsResponse[] {
     const aggregates = this.recordRepo.getAggregateStatsByPeriod(period);
 
+    // Pre-fetch all progress data to avoid N+1 queries
+    const allProgress = this.progressRepo.getAll();
+    const progressMap = new Map(allProgress.map((p) => [p.conceptId, p]));
+
     const mapped = [...aggregates]
       .filter((agg) => agg.totalAttempts >= 2) // Only concepts with enough data
       .map((agg) => {
-        const progress = this.progressRepo.findById(agg.conceptId);
+        const progress = progressMap.get(agg.conceptId);
         const correctRate = calculateRate(agg.correctCount, agg.totalAttempts - agg.skippedCount);
         return {
           conceptId: agg.conceptId,

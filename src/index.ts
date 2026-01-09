@@ -27,6 +27,7 @@ import {
   setModeInputSchema,
   saveReportInputSchema,
   saveUnknownsInputSchema,
+  getInterviewDataInputSchema,
 } from './tools/schemas.js';
 import { VibeLearningError } from './core/errors.js';
 import { closeDatabase } from './db/index.js';
@@ -297,6 +298,23 @@ const TOOLS: Tool[] = [
       required: [],
     },
   },
+  {
+    name: 'get_interview_data',
+    description:
+      'Get interview preparation data with technical areas and mastery levels. Returns topics sorted by mastery (weakest first), recommended topic for practice, and interview behavior instructions for the host LLM.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        period: {
+          type: 'string',
+          enum: ['week', 'month', 'all'],
+          description: 'Time period for interview data',
+          default: 'month',
+        },
+      },
+      required: [],
+    },
+  },
 ];
 
 /**
@@ -423,6 +441,12 @@ function createServer(): Server {
             parsed.limit,
             parsed.filename
           );
+          return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+        }
+
+        case 'get_interview_data': {
+          const parsed = getInterviewDataInputSchema.parse(args ?? {});
+          const result = handlers.getInterviewData(parsed.period as TimePeriod);
           return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
         }
 

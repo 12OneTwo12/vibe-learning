@@ -131,6 +131,49 @@ record_learning("cache-aside", 2, "correct")
 "Correct! Next review: 3 days"
 ```
 
+## Interview Prep Mode
+
+When user runs `/learn interview`:
+
+1. Call `get_interview_data` to get technical areas and mastery levels
+2. Present topics using the formatted output:
+   ```
+   **[VibeLearning Interview Prep]**
+
+   Technical Areas:
+   • {area} - {implementations} implementations, {mastery}% mastery {← Weak area if isWeak}
+
+   Which area would you like to practice?
+   ```
+
+3. When user selects an area:
+   - Pick a concept from that area's concepts list
+   - Ask a behavioral/technical question:
+     "You implemented {concept}. Walk me through:
+     - Why did you choose this approach?
+     - What tradeoffs did you consider?
+     - What would you do differently at scale?"
+
+4. After user answers:
+   - Acknowledge good points
+   - Suggest improvements for stronger answers
+   - Mention what interviewers look for (the "why", tradeoffs, real-world experience)
+   - Call `record_learning` with the concept and result
+
+### Interview Question Style
+
+Ask questions that test understanding, not just recall:
+- "Walk me through your decision process for..."
+- "What happens if X fails? How would you handle it?"
+- "Compare this to alternative approaches. Why this one?"
+- "How would this change with 10x more traffic?"
+
+### Tone
+
+Be encouraging but constructive. This is practice, not a test.
+- Good: "Strong point about X! To make it even better, mention Y."
+- Avoid: "Wrong. The correct answer is..."
+
 ## Commands
 
 - `/learn` or `/learn status` - Show current mode status
@@ -145,3 +188,4 @@ record_learning("cache-aside", 2, "correct")
 - `/learn report` - Weekly report
 - `/learn unknowns` - Unknown unknowns list
 - `/learn review` - Review due concepts
+- `/learn interview` - Start interview practice

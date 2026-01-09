@@ -223,6 +223,30 @@ export interface SaveUnknownsResponse {
 }
 
 /**
+ * Response from get_interview_data tool
+ */
+export interface GetInterviewDataResponse {
+  readonly topics: readonly InterviewTopicResponse[];
+  readonly recommendedTopic: string | null;
+  readonly totalConcepts: number;
+  readonly formattedOutput: string;
+  readonly interviewBehavior: string;
+}
+
+/**
+ * Interview topic in response format
+ */
+export interface InterviewTopicResponse {
+  readonly area: string;
+  readonly implementations: number;
+  readonly mastery: number;
+  readonly isWeak: boolean;
+  readonly concepts: readonly string[];
+  readonly avgLevel: number;
+  readonly correctRate: number;
+}
+
+/**
  * Error response structure
  */
 export interface ErrorResponse {

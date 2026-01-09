@@ -24,6 +24,7 @@ import type {
   MarkExploredResponse,
   SaveReportResponse,
   SaveUnknownsResponse,
+  GetInterviewDataResponse,
 } from '../types/index.js';
 import {
   FatigueService,
@@ -32,6 +33,7 @@ import {
   ReportService,
   UnknownUnknownsService,
   ModeService,
+  InterviewService,
 } from '../services/index.js';
 import { VibeLearningError } from '../core/errors.js';
 
@@ -45,6 +47,7 @@ export class ToolHandlers {
   private readonly reportService: ReportService;
   private readonly unknownsService: UnknownUnknownsService;
   private readonly modeService: ModeService;
+  private readonly interviewService: InterviewService;
 
   constructor() {
     this.fatigueService = new FatigueService();
@@ -53,6 +56,7 @@ export class ToolHandlers {
     this.reportService = new ReportService();
     this.unknownsService = new UnknownUnknownsService();
     this.modeService = new ModeService();
+    this.interviewService = new InterviewService();
   }
 
   /**
@@ -299,6 +303,20 @@ export class ToolHandlers {
         period: report.period,
         message: `Report saved to ${filePath}`,
       };
+    } catch (error) {
+      if (error instanceof VibeLearningError) {
+        throw error;
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * get_interview_data - Get interview preparation data
+   */
+  getInterviewData(period: TimePeriod = 'month'): GetInterviewDataResponse {
+    try {
+      return this.interviewService.getInterviewData(period);
     } catch (error) {
       if (error instanceof VibeLearningError) {
         throw error;

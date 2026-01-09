@@ -54,6 +54,18 @@ npx vibe-learning install opencode
 - Hooks: SessionStart, PostToolUse, Stop
 - Command: `/vibe-learning:learn`
 
+**Auto-approve MCP permissions (recommended):**
+
+Claude Code asks for MCP tool permissions every new session. To skip this, add to `~/.claude/settings.json`:
+
+```json
+{
+  "permissions": {
+    "allow": ["mcp__vibe-learning"]
+  }
+}
+```
+
 ### Check Status
 
 ```bash
@@ -190,6 +202,7 @@ For direct MCP integration or custom implementations:
 | `get_mode` / `set_mode` | Manage learning mode |
 | `save_report` | Save report to markdown file |
 | `save_unknowns` | Save unknowns to markdown file |
+| `get_interview_data` | Get interview prep data with mastery levels |
 
 ## Data Storage
 
@@ -273,6 +286,22 @@ npm test
 npm run lint
 ```
 
+## FAQ
+
+### Do I really need a plugin for this?
+
+Honestly, no. Most of VibeLearning's features can be implemented with just prompts or CLAUDE.md instructions. You could set up spaced repetition questions, senior mode discussions, and learning tracking through well-crafted system prompts alone.
+
+However, we built this as a plugin for those who:
+- Don't want to manually configure system prompts for every project
+- Prefer a one-click install over copy-pasting CLAUDE.md instructions
+- Want the few extra features that only MCP/plugins can provide:
+  - **Persistent SQLite database** for tracking progress across sessions
+  - **SM-2 algorithm calculations** with automatic review scheduling
+  - **Cross-project statistics** and reports
+
+If you enjoy configuring things yourself, feel free to grab ideas from our [CLAUDE.md](./CLAUDE.md) and adapt them to your workflow.
+
 ## Architecture
 
 ```
@@ -290,7 +319,7 @@ npm run lint
 │  │              MCP Server (Core)                   │   │
 │  │  - SM-2 Algorithm                                │   │
 │  │  - SQLite Database                               │   │
-│  │  - 13 Tools                                      │   │
+│  │  - 14 Tools                                      │   │
 │  └─────────────────────────────────────────────────┘   │
 │                                                          │
 └─────────────────────────────────────────────────────────┘
