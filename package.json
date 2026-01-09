@@ -1,6 +1,6 @@
 {
   "name": "vibe-learning",
-  "version": "0.3.33",
+  "version": "1.0.0",
   "description": "Learn while vibe coding - Spaced repetition learning for AI coding agents",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

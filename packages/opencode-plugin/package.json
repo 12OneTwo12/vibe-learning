@@ -1,6 +1,6 @@
 {
   "name": "vibe-learning-opencode",
-  "version": "0.2.17",
+  "version": "1.0.0",
   "description": "VibeLearning plugin for OpenCode - spaced repetition learning while coding",
   "type": "module",
   "main": "dist/index.js",
