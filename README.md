@@ -286,6 +286,22 @@ npm test
 npm run lint
 ```
 
+## FAQ
+
+### Do I really need a plugin for this?
+
+Honestly, no. Most of VibeLearning's features can be implemented with just prompts or CLAUDE.md instructions. You could set up spaced repetition questions, senior mode discussions, and learning tracking through well-crafted system prompts alone.
+
+However, we built this as a plugin for those who:
+- Don't want to manually configure system prompts for every project
+- Prefer a one-click install over copy-pasting CLAUDE.md instructions
+- Want the few extra features that only MCP/plugins can provide:
+  - **Persistent SQLite database** for tracking progress across sessions
+  - **SM-2 algorithm calculations** with automatic review scheduling
+  - **Cross-project statistics** and reports
+
+If you enjoy configuring things yourself, feel free to grab ideas from our [CLAUDE.md](./CLAUDE.md) and adapt them to your workflow.
+
 ## Architecture
 
 ```
