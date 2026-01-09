@@ -190,6 +190,7 @@ For direct MCP integration or custom implementations:
 | `get_mode` / `set_mode` | Manage learning mode |
 | `save_report` | Save report to markdown file |
 | `save_unknowns` | Save unknowns to markdown file |
+| `get_interview_data` | Get interview prep data with mastery levels |
 
 ## Data Storage
 
@@ -290,7 +291,7 @@ npm run lint
 │  │              MCP Server (Core)                   │   │
 │  │  - SM-2 Algorithm                                │   │
 │  │  - SQLite Database                               │   │
-│  │  - 13 Tools                                      │   │
+│  │  - 14 Tools                                      │   │
 │  └─────────────────────────────────────────────────┘   │
 │                                                          │
 └─────────────────────────────────────────────────────────┘
