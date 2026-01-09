@@ -54,6 +54,18 @@ npx vibe-learning install opencode
 - Hooks: SessionStart, PostToolUse, Stop
 - Command: `/vibe-learning:learn`
 
+**Auto-approve MCP permissions (recommended):**
+
+Claude Code asks for MCP tool permissions every new session. To skip this, add to `~/.claude/settings.json`:
+
+```json
+{
+  "permissions": {
+    "allow": ["mcp__vibe-learning"]
+  }
+}
+```
+
 ### Check Status
 
 ```bash
