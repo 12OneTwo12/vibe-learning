@@ -99,6 +99,8 @@ Add to your MCP configuration:
 
 ### /learn Commands
 
+<img width="744" height="758" alt="image" src="https://github.com/user-attachments/assets/57d329f4-812b-405f-89ab-de27b720e419" />
+
 Both OpenCode and Claude Code support the `/learn` command:
 
 #### Status & Control
@@ -179,10 +181,30 @@ Senior mode simulates a strict senior developer reviewing your decisions:
 Good thinking! [Summary]. Implementing now.
 ```
 
+<img width="1422" height="994" alt="image" src="https://github.com/user-attachments/assets/4f73617b-9a82-4cfa-a6b9-3788a152e0b0" />
+
 - **Minimum 2 rounds required** - Won't skip to implementation on first answer
 - **Strict evaluation** - Only proceeds when you demonstrate understanding of alternatives and tradeoffs
 - **Educational summary** - Provides brief explanation before implementing
 - **Learning recorded** - Discussions are recorded for spaced repetition review
+- **Then implements** - After rounds complete, AI proceeds with full implementation as requested
+
+#### After Mode Details
+
+After mode asks learning questions after task completion using spaced repetition (SM-2):
+
+```
+**[VibeLearning]**
+_Learning Question (Level 3)_
+What's the difference between JWT and session-based authentication?
+```
+
+<img width="1262" height="824" alt="image" src="https://github.com/user-attachments/assets/e0dcaaf0-18e4-4d75-837f-edd822327d27" />
+
+- **Post-task questions** - Asked after completing implementation tasks
+- **SM-2 scheduling** - Reviews scheduled based on your answers (correct → longer intervals)
+- **Review chaining** - After answering, may ask one due review question if available
+- **Fatigue management** - 15-min cooldown, auto-pause after 2 consecutive skips
 
 ## MCP Tools Reference
 
