@@ -70,7 +70,7 @@ After user response, call `record_learning`:
 
 **Fatigue Management:**
 - Learning question + Review question = max 2 questions per task
-- If user skips review, don't ask another one
+- If user skips the learning question, don't ask review question
 - Respect the 15-minute cooldown for the NEXT task
 
 ### 6. Unknown Unknowns

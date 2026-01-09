@@ -45,8 +45,8 @@ npx vibe-learning install opencode
 2. Go to **Marketplaces** tab
 3. Click **+ Add Marketplace**
 4. Enter: `12OneTwo12/vibe-learning`
-5. Click **Browse plugins**
-6. Select **vibe-learning** and click **Install**
+5. Go to **Discover** tab
+6. Select **vibe-learning** and Enter **Install**
 7. Restart Claude Code
 
 **What gets installed:**
