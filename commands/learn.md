@@ -57,15 +57,19 @@ Call: `set_mode` with `focus_area="<area>"`
 
 Call: `get_stats` with `period="month"`
 
-Format results as dashboard.
+Display the response's formattedOutput field if available. Otherwise format as dashboard.
 
 ## `report` - Weekly Report
 
 Call: `get_report_data` with `period="week"`
 
+Display the response's formattedOutput field directly.
+
 ## `report month` - Monthly Report
 
 Call: `get_report_data` with `period="month"`
+
+Display the response's formattedOutput field directly.
 
 ## `report --save` - Save Report
 
@@ -74,6 +78,8 @@ Call: `save_report` with `period="week"`
 ## `unknowns` - Unknown Unknowns
 
 Call: `get_unknown_unknowns` with `period="month", limit=10`
+
+Display the response's formattedOutput field directly.
 
 ## `unknowns --save` - Save Unknowns
 
@@ -87,6 +93,6 @@ Then ask questions for each due concept.
 
 ## `interview` - Interview Mode
 
-Call: `get_stats` with `period="month"`
+Call: `get_interview_data` with `period="month"`
 
-Then conduct interview-style deep questions on learned concepts.
+Display the response's formattedOutput field, then follow the interviewBehavior instructions to conduct interview practice.
