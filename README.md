@@ -4,6 +4,22 @@
 
 Turn your coding sessions into learning opportunities. VibeLearning automatically asks you questions about the concepts you're using, helping you truly understand the code you write with AI assistance.
 
+## Table of Contents
+
+- [Features](#features)
+- [How It Works](#how-it-works)
+- [Architecture](#architecture)
+- [Supported Platforms](#supported-platforms)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Commands](#learn-commands)
+  - [Learning Modes](#learning-modes)
+  - [Learning Levels](#learning-levels)
+- [FAQ](#faq)
+- [Development](#development)
+- [Uninstallation](#uninstallation)
+- [License](#license)
+
 ## Features
 
 - **Automatic Learning Triggers**: Just install and it works across all sessions
@@ -13,12 +29,44 @@ Turn your coding sessions into learning opportunities. VibeLearning automaticall
 - **Unknown Unknowns**: Tracks concepts you don't know you don't know
 - **Report Export**: Save learning reports as markdown files
 
+## How It Works
+
+1. **Request a task** from your AI coding agent
+2. **AI asks 2-3 questions** about your approach (Senior Mode)
+3. **Explain your reasoning** - why this approach? what alternatives?
+4. **AI implements** after you demonstrate understanding
+5. **Post-task question** reinforces learning (After Mode)
+6. **Progress is tracked** using spaced repetition for optimal retention
+
+## Architecture
+
+```
+┌───────────────────────────────────────────────────────────┐
+│                      VibeLearning                         │
+├───────────────────────────────────────────────────────────┤
+│                                                           │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
+│  │   OpenCode   │  │  Claude Code │  │    Cursor    │    │
+│  │   (Plugin)   │  │(Plugin+Hooks)│  │    (MCP)     │    │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘    │
+│         │                 │                 │             │
+│         ▼                 ▼                 ▼             │
+│  ┌───────────────────────────────────────────────────┐   │
+│  │               MCP Server (Core)                   │   │
+│  │  - SM-2 Algorithm                                 │   │
+│  │  - SQLite Database                                │   │
+│  │  - 14 Tools                                       │   │
+│  └───────────────────────────────────────────────────┘   │
+│                                                           │
+└───────────────────────────────────────────────────────────┘
+```
+
 ## Supported Platforms
 
 | Platform | Auto Install | Features |
 |----------|--------------|----------|
 | **OpenCode** | ✅ | Plugin + MCP + /learn commands |
-| **Claude Code** | ✅ | Hooks + MCP + /learn commands |
+| **Claude Code** | ✅ | Plugin + Hooks + MCP + /learn commands |
 | Cursor | 📋 Manual | MCP server only |
 | Cline | 📋 Manual | MCP server only |
 
@@ -66,12 +114,6 @@ Claude Code asks for MCP tool permissions every new session. To skip this, add t
 }
 ```
 
-### Check Status
-
-```bash
-npx vibe-learning status
-```
-
 ### Manual Installation (Cursor, Cline, etc.)
 
 Add to your MCP configuration:
@@ -87,19 +129,17 @@ Add to your MCP configuration:
 }
 ```
 
-## How It Works
+### Check Status
 
-1. **Request a task** from your AI coding agent
-2. **AI asks 2-3 questions** about your approach (Senior mode, default)
-3. **Explain your reasoning** - why this approach? what alternatives?
-4. **AI implements** after you demonstrate understanding
-5. **Progress is tracked** using spaced repetition for optimal retention
+```bash
+npx vibe-learning status
+```
 
 ## Usage
 
 ### /learn Commands
 
-<img width="744" height="758" alt="image" src="https://github.com/user-attachments/assets/57d329f4-812b-405f-89ab-de27b720e419" />
+<img alt="VibeLearning Commands" src="https://github.com/user-attachments/assets/57d329f4-812b-405f-89ab-de27b720e419" />
 
 Both OpenCode and Claude Code support the `/learn` command:
 
@@ -130,32 +170,14 @@ Both OpenCode and Claude Code support the `/learn` command:
 | `/learn review` | Start reviewing due concepts |
 | `/learn interview` | Interview practice mode |
 
-### Learning Levels
-
-| Level | Name | Question Style |
-|-------|------|---------------|
-| 1 | Recognition | "Do you know what X is?" |
-| 2 | Understanding | "Can you explain how X works?" |
-| 3 | Comparison | "When would you use X instead of Y?" |
-| 4 | Edge Cases | "What are the pitfalls of X?" |
-| 5 | Architecture | "How would you design X at scale?" |
-
-### Answering Questions
-
-When asked a learning question, respond naturally. The AI will evaluate your answer as:
-- **correct** - You understood it well → Level up possible
-- **partial** - Partial understanding → Stay at current level
-- **incorrect** - Wrong answer → May level down
-- **skipped** - Too busy right now → Asked again later
-
 ### Learning Modes
 
-VibeLearning uses two independent toggles that can be combined:
+VibeLearning uses two independent toggles:
 
 | Toggle | Default | Behavior |
 |--------|---------|----------|
 | **Senior Mode** | ✅ On | Pre-implementation questioning (2-3 rounds) |
-| **After Mode** | ✅ On | Post-task learning questions |
+| **After Mode** | ✅ On | Post-task spaced repetition questions |
 
 **Mode Combinations:**
 
@@ -166,9 +188,9 @@ VibeLearning uses two independent toggles that can be combined:
 | ❌ | ✅ | After only - Quick post-task questions |
 | ❌ | ❌ | Off - No questions (recording continues) |
 
-#### Senior Mode Details
+#### Senior Mode
 
-Senior mode simulates a strict senior developer reviewing your decisions:
+Simulates a strict senior developer reviewing your decisions:
 
 ```
 **[VibeLearning Senior Mode]**
@@ -181,17 +203,16 @@ Senior mode simulates a strict senior developer reviewing your decisions:
 Good thinking! [Summary]. Implementing now.
 ```
 
-<img width="1422" height="994" alt="image" src="https://github.com/user-attachments/assets/4f73617b-9a82-4cfa-a6b9-3788a152e0b0" />
+<img alt="Senior Mode Example" src="https://github.com/user-attachments/assets/4f73617b-9a82-4cfa-a6b9-3788a152e0b0" />
 
-- **Minimum 2 rounds required** - Won't skip to implementation on first answer
-- **Strict evaluation** - Only proceeds when you demonstrate understanding of alternatives and tradeoffs
+- **Minimum 2 rounds** - Won't skip to implementation on first answer
+- **Strict evaluation** - Only proceeds when you demonstrate understanding
 - **Educational summary** - Provides brief explanation before implementing
-- **Learning recorded** - Discussions are recorded for spaced repetition review
-- **Then implements** - After rounds complete, AI proceeds with full implementation as requested
+- **Then implements** - After rounds complete, AI proceeds with implementation
 
-#### After Mode Details
+#### After Mode
 
-After mode asks learning questions after task completion using spaced repetition (SM-2):
+Asks spaced repetition questions after task completion:
 
 ```
 **[VibeLearning]**
@@ -199,94 +220,47 @@ _Learning Question (Level 3)_
 What's the difference between JWT and session-based authentication?
 ```
 
-<img width="1262" height="824" alt="image" src="https://github.com/user-attachments/assets/e0dcaaf0-18e4-4d75-837f-edd822327d27" />
+<img alt="After Mode Example" src="https://github.com/user-attachments/assets/e0dcaaf0-18e4-4d75-837f-edd822327d27" />
 
-- **Post-task questions** - Asked after completing implementation tasks
-- **SM-2 scheduling** - Reviews scheduled based on your answers (correct → longer intervals)
-- **Review chaining** - After answering, may ask one due review question if available
+- **SM-2 scheduling** - Reviews scheduled based on your answers
+- **Review chaining** - May ask one due review question after answering
 - **Fatigue management** - 15-min cooldown, auto-pause after 2 consecutive skips
 
-## MCP Tools Reference
+### Learning Levels
 
-For direct MCP integration or custom implementations:
+| Level | Name | Question Style |
+|-------|------|---------------|
+| 1 | Recognition | "Do you know what X is?" |
+| 2 | Understanding | "Can you explain how X works?" |
+| 3 | Comparison | "When would you use X instead of Y?" |
+| 4 | Edge Cases | "What are the pitfalls of X?" |
+| 5 | Architecture | "How would you design X at scale?" |
 
-| Tool | Description |
-|------|-------------|
-| `should_ask_question` | Check if it's a good time to ask |
-| `get_concept_level` | Get current level (1-5) for a concept |
-| `record_learning` | Record learning result |
-| `record_unknown_unknown` | Register a concept the user might not know |
-| `get_stats` | Get learning statistics |
-| `get_report_data` | Get comprehensive report data |
-| `get_unknown_unknowns` | Get list of unexplored concepts |
-| `mark_explored` | Mark a concept as explored |
-| `get_due_reviews` | Get concepts due for review |
-| `get_mode` / `set_mode` | Manage learning mode |
-| `save_report` | Save report to markdown file |
-| `save_unknowns` | Save unknowns to markdown file |
-| `get_interview_data` | Get interview prep data with mastery levels |
+**New concepts start at Level 3** to respect experienced developers.
 
-## Data Storage
+### Answering Questions
 
-- **Database**: `~/.vibe-learning/learning.db` (SQLite)
-- **Reports**: `~/.vibe-learning/*.md`
+When asked a learning question, respond naturally. The AI evaluates:
+- **correct** - Understood well → Level up possible
+- **partial** - Partial understanding → Stay at current level
+- **incorrect** - Wrong answer → Level down to find true level
+- **skipped** - Too busy → Asked again later
 
-## Uninstallation
+## FAQ
 
-### Automatic Uninstall
+### Do I really need a plugin for this?
 
-```bash
-npx vibe-learning uninstall
-```
+Honestly, no. Most of VibeLearning's features can be implemented with just prompts or CLAUDE.md instructions. You could set up spaced repetition questions through well-crafted system prompts alone.
 
-This removes:
-- OpenCode plugin and command files
-- Claude Code command and hook files
+However, we built this as a plugin for those who:
+- Don't want to manually configure system prompts for every project
+- Prefer a one-click install over copy-pasting CLAUDE.md instructions
+- Want the few extra features that only MCP/plugins can provide:
+  - **Persistent SQLite database** for tracking progress across sessions
+  - **SM-2 algorithm calculations** with automatic review scheduling
+  - **Cross-project statistics** and reports
 
-### Manual Uninstall
-
-#### OpenCode
-
-1. Remove plugin from `~/.config/opencode/opencode.json`:
-   ```json
-   {
-     "plugin": ["vibe-learning-opencode"]  // Remove this line
-   }
-   ```
-
-2. Remove MCP server from `~/.config/opencode/opencode.json`:
-   ```json
-   {
-     "mcp": {
-       "vibe-learning": { ... }  // Remove this block
-     }
-   }
-   ```
-
-3. Delete command file:
-   ```bash
-   rm ~/.config/opencode/command/learn.md
-   ```
-
-#### Claude Code
-
-Run in Claude Code:
-```
-/plugins uninstall vibe-learning
-```
-
-Or manually:
-1. Run `/plugins`
-2. Find **vibe-learning** in installed plugins
-3. Click **Uninstall**
-
-### Complete Data Removal
-
-To also remove all learning data:
-
-```bash
-rm -rf ~/.vibe-learning/
-```
+If you enjoy configuring things yourself, feel free to grab ideas from our [CLAUDE.md](./CLAUDE.md) and adapt them to your workflow.
 
 ## Development
 
@@ -308,43 +282,47 @@ npm test
 npm run lint
 ```
 
-## FAQ
+### Data Storage
 
-### Do I really need a plugin for this?
+- **Database**: `~/.vibe-learning/learning.db` (SQLite)
+- **Reports**: `~/.vibe-learning/*.md`
 
-Honestly, no. Most of VibeLearning's features can be implemented with just prompts or CLAUDE.md instructions. You could set up spaced repetition questions, senior mode discussions, and learning tracking through well-crafted system prompts alone.
+### MCP Tools Reference
 
-However, we built this as a plugin for those who:
-- Don't want to manually configure system prompts for every project
-- Prefer a one-click install over copy-pasting CLAUDE.md instructions
-- Want the few extra features that only MCP/plugins can provide:
-  - **Persistent SQLite database** for tracking progress across sessions
-  - **SM-2 algorithm calculations** with automatic review scheduling
-  - **Cross-project statistics** and reports
+For direct MCP integration or custom implementations:
 
-If you enjoy configuring things yourself, feel free to grab ideas from our [CLAUDE.md](./CLAUDE.md) and adapt them to your workflow.
+| Tool | Description |
+|------|-------------|
+| `should_ask_question` | Check if it's a good time to ask |
+| `get_concept_level` | Get current level (1-5) for a concept |
+| `record_learning` | Record learning result |
+| `record_unknown_unknown` | Register a concept the user might not know |
+| `get_stats` | Get learning statistics |
+| `get_report_data` | Get comprehensive report data |
+| `get_unknown_unknowns` | Get list of unexplored concepts |
+| `mark_explored` | Mark a concept as explored |
+| `get_due_reviews` | Get concepts due for review |
+| `get_mode` / `set_mode` | Manage learning mode |
+| `save_report` | Save report to markdown file |
+| `save_unknowns` | Save unknowns to markdown file |
+| `get_interview_data` | Get interview prep data with mastery levels |
 
-## Architecture
+## Uninstallation
 
+### Automatic
+
+```bash
+npx vibe-learning uninstall
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    VibeLearning                          │
-├─────────────────────────────────────────────────────────┤
-│                                                          │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
-│  │   OpenCode  │  │ Claude Code │  │   Cursor    │     │
-│  │   Plugin    │  │   (Hooks)   │  │   (MCP)     │     │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘     │
-│         │                │                │             │
-│         ▼                ▼                ▼             │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │              MCP Server (Core)                   │   │
-│  │  - SM-2 Algorithm                                │   │
-│  │  - SQLite Database                               │   │
-│  │  - 14 Tools                                      │   │
-│  └─────────────────────────────────────────────────┘   │
-│                                                          │
-└─────────────────────────────────────────────────────────┘
+
+### Claude Code
+
+Run `/plugins` → Find **vibe-learning** → Click **Uninstall**
+
+### Complete Data Removal
+
+```bash
+rm -rf ~/.vibe-learning/
 ```
 
 ## License
